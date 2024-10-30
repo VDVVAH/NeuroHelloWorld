@@ -9,7 +9,7 @@ from keras.api.models import load_model
 from PIL import Image
 
 from Perceptron import Perceptron, Layer
-# Воспользовался https://github.com/blaze-arch/MNIST-Classifier/blob/main/templates/index.html
+# Воспользовался https://github.com/blaze-arch/MNIST-Classifier/blob/main/templates
 
 class DigitRecognition(Perceptron):
     def __init__(self,
