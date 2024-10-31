@@ -1,14 +1,21 @@
 import io
-import numpy as np
+from pathlib import Path
+from typing import Annotated
 
-from keras.api.datasets import mnist
-from keras.api.models import Sequential
-from keras.api.layers import Dense, Flatten
-from keras.api.utils import to_categorical
-from keras.api.models import load_model
+import numpy as np
+import uvicorn
 from PIL import Image
+from fastapi import UploadFile, Form
+from keras.api.datasets import mnist
+from keras.api.layers import Dense, Flatten
+from keras.api.models import Sequential
+from keras.api.models import load_model
+from keras.api.utils import to_categorical
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from Perceptron import Perceptron, Layer
+from server import Server
+
 # Воспользовался https://github.com/blaze-arch/MNIST-Classifier/blob/main/templates
 
 class DigitRecognition(Perceptron):
@@ -51,10 +58,10 @@ class DigitRecognition(Perceptron):
         """
         Создаёт модель нейросети.
         """
-        return Sequential(
+        return Sequential([
             Flatten(input_shape=self.INPUT_SHAPE),
             *[Dense(**layer.to_kwargs_dict()) for layer in self.layers]
-        )
+            ])
 
     def _compile_model(self, model: Sequential) -> Sequential:
         """
@@ -63,10 +70,14 @@ class DigitRecognition(Perceptron):
         model.compile(optimizer=self.OPTIMIZER, loss=self.LOSS_FUNCTION, metrics=self.METRICS)
         return model
 
-    def train(self):
+    def train(self) -> None:
         """
         Создаёт, компилирует, обучает и сохраняет модель нейросети.
         """
+        if Path(__file__).with_name(self.SAVE_FILE).exists():
+            self.model = load_model(filepath=self.SAVE_FILE)
+            return
+
         self._prepare_data()
         self.model = self._compile_model(
             self._create_model()
@@ -96,3 +107,24 @@ class DigitRecognition(Perceptron):
 
         return np.argmax(predictions)
 
+
+class DBInClass:
+    def __init__(self):
+        self.model = DigitRecognition()
+
+db = DBInClass()
+
+class WebUI(metaclass=Server):
+    @staticmethod
+    def home():
+        with open("templates/digit_recognition.html") as file:
+            db.model.train()
+            return HTMLResponse(file.read(), status_code=200)
+
+    @staticmethod
+    def prediction(image: Annotated[UploadFile, Form()]):
+        return JSONResponse({"prediction": db.model.apply(image)}, status_code=200)
+
+
+if __name__ == "__main__":
+    uvicorn.run(app=WebUI.app, host="0.0.0.0", port=8080)
