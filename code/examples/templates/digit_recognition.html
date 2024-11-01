@@ -4,97 +4,200 @@
     <meta charset="UTF-8">
     <title>Распознавание цифр</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #EEE8F3; /* Лавандовый фон */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
+        * {
+            margin: 0;
+            padding: 0;
+            transition-duration: 300ms;
         }
-        canvas {
-            border: 1px solid #000;
-            background-color: #000;
+
+        :root {
+            --border-color: silver;
+            --text-color1: gold;
+            --text-color2: black;
+            --bg-color1: #950b0b;
+            --bg-color2: wheat;
+            --bg-color3: #e3dbdb;
+            --button-bg-color: orange;
+            --button-text-color: #e33e1a;
+            --button-darken-text-color: #ca3d1f;
+            --button-darkenest-text-color: #932d17;
+            --button-darken-bg-color: #c17c01;
+            --button-darkenest-bg-color: #855501;
         }
-        #clearBtn, #predictBtn {
-            margin-top: 20px;
-            padding: 10px;
-            border: none;
-            background-color: #957DAD; /* Лавандовая кнопка */
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
+
+        header {
+            display: block;
+            width: 100vw;
+            height: 20vh;
+            border-bottom: 2px solid var(--border-color);
+            background-color: var(--bg-color1);
+        }
+
+        header div {
+            display: block;
+            margin: auto;
+            padding: 3rem;
+        }
+
+        #title_paragraph {
+            color: var(--text-color1);
+            font-size: 3rem;
+            text-shadow: var(--text-color2) 2px 1px;
+            text-align: center;
+        }
+
+        section {
+            width: 100vw;
+            height: 70vh;
+            border-bottom: 2px solid var(--border-color);
+            background-color: var(--bg-color2);
+            padding-top: 2rem;
+        }
+
+        section div {
+            margin: auto;
+            padding-top: 4rem;
+            width: 100vw;
+            height: 30vh;
+        }
+
+        section div p {
+            margin: auto 35vw;
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 2.5rem;
+            border: 2px solid var(--border-color);
+            color: var(--text-color2);
+            background-color: var(--bg-color3);
+            border-radius: 1rem;
+        }
+
+        .canvas_button {
+            display: block;
+            width: 30vw;
+            height: 5vh;
+            text-align: center;
+            text-shadow: var(--bg-color1) 1px 0.5px;
+            font-size: 2rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
+            margin-bottom: 1rem;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: black 2px 2px;
+        }
+
+        .canvas_button:hover {
+            background-color: var(--button-darken-bg-color);
+            color: var(--button-darken-text-color);
+            box-shadow: black 1px 1px;
+        }
+
+        .canvas_button:active {
+            box-shadow: none;
+            color: var(--button-darkenest-text-color);
+            background-color: var(--button-darkenest-bg-color);
+        }
+
+        #canvas_div {
+            padding: 0;
+            height: 21rem;
+            width: 21rem;
+            margin: auto;
+        }
+
+        section div canvas {
+            margin: 0;
+            height: 100%;
+            width: 100%;
+            border: 4px solid var(--bg-color1);
+            background-color: black;
+        }
+
+        footer {
+            width: 100vw;
+            height: calc(10vh - 4px - 2rem);
+            background-color: var(--bg-color1);
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas" width="280" height="280"></canvas>
-    <button id="clearBtn">Очистить</button>
-    <button id="predictBtn">Что это за цифра?</button>
-    <p id="prediction"></p>
+    <header>
+        <div>
+            <p id="title_paragraph">
+                Распознавание цифр
+            </p>
+        </div>
+    </header>
+    <section>
+        <div id="canvas_div">
+            <canvas id="canvas">
+            </canvas>
+        </div>
+        <div>
+            <button id="predict_button" class="canvas_button">Распознать</button>
+            <button id="clear_button" class="canvas_button">Очистить</button>
+            <p>Нажмите 'Распознать'.</p>
+        </div>
+    </section>
+    <footer>
 
+    </footer>
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let drawing = false;
-        let lastX = 0;
-        let lastY = 0;
+const obj = {
+    canvas: document.getElementById("canvas"),
+    context: this.canvas.getContext("2d"),
+    rect: this.canvas.getBoundingClientRect(),
+    drawing: false,
+    lastCoord: {x: 0, y: 0}
+};
 
-        canvas.addEventListener('mousedown', (e) => {
-            drawing = true;
-            lastX = e.clientX - canvas.offsetLeft;
-            lastY = e.clientY - canvas.offsetTop;
-        });
+obj.canvas.addEventListener("mousedown", (e) => {
+    obj.drawing = true;
+    obj.lastCoord.x = e.clientX - obj.rect.left;
+    obj.lastCoord.y = e.clientY - obj.rect.top;
+});
 
-        canvas.addEventListener('mouseup', () => drawing = false);
-        canvas.addEventListener('mouseleave', () => drawing = false);
+obj.canvas.addEventListener("mouseup", (e) => {
+    obj.drawing = false;
+});
 
-        canvas.addEventListener('mousemove', draw);
-        document.getElementById('clearBtn').addEventListener('click', clearCanvas);
-        document.getElementById('predictBtn').addEventListener('click', predict);
+obj.canvas.addEventListener("mouseleave", (e) => {
+    obj.drawing = false;
+})
 
-        function draw(e) {
-            if (!drawing) return;
-            ctx.lineWidth = 20;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#FFF';
+obj.canvas.addEventListener("mousemove", draw);
+document.getElementById("predict_button").addEventListener("click", predict);
+document.getElementById("clear_button").addEventListener("click", clear);
 
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
-            ctx.stroke();
+function draw(e) {
+    if (obj.drawing) {
+        obj.context.lineWidth = 20;
+        obj.context.lineCap = "round";
+        obj.context.strokeStyle = "#FFF";
 
-            lastX = e.clientX - canvas.offsetLeft;
-            lastY = e.clientY - canvas.offsetTop;
-        }
+        obj.context.beginPath();
+        obj.context.moveTo(obj.lastCoord.x, obj.lastCoord.y);
 
-        function clearCanvas() {
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
+        obj.lastCoord.x = e.clientX - obj.rect.left;
+        obj.lastCoord.y = e.clientY - obj.rect.top;
 
-        function predict() {
-            canvas.toBlob(blob => {
-                const formData = new FormData();
-                formData.append('image', blob);
+        obj.context.lineTo(obj.lastCoord.x, obj.lastCoord.y);
+        obj.context.stroke();
+    }
+}
 
-                fetch('/prediction', {
-                    method: 'POST',
-                    body: formData,
-                })
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('prediction').innerText = 'Предсказание: ' + data.digit;
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                });
-            });
-        }
 
-        clearCanvas();
+function predict() {
 
+}
+
+function clear() {
+    obj.context.fillStyle = "#000";
+    obj.context.fillRect(0, 0, obj.canvas.width, obj.canvas.height);
+}
     </script>
 </body>
 </html>
