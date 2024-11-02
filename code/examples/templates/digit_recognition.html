@@ -139,7 +139,7 @@
         <div>
             <button id="predict_button" class="canvas_button">Распознать</button>
             <button id="clear_button" class="canvas_button">Очистить</button>
-            <p>Нажмите 'Распознать'.</p>
+            <p id="prediction">Нажмите 'Распознать'.</p>
         </div>
     </section>
     <footer>
@@ -191,7 +191,22 @@ function draw(e) {
 
 
 function predict() {
+    obj.canvas.toBlob((blob) => {
+        const formData = new FormData();
+        formData.append("image", blob);
 
+        fetch("/prediction", {
+            method: "POST",
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("prediction").innerText = "Предсказание: " + data.prediction;
+        })
+        .catch(error => {
+            console.error("Ошибка:", error);
+        });
+    });
 }
 
 function clear() {

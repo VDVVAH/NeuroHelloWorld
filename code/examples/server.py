@@ -5,7 +5,10 @@ from fastapi import FastAPI
 
 class Server(type):
     app = FastAPI()
-    _http_methods = {"get", "post", "patch", "put", "delete", "head", "GET", "POST", "PATCH", "PUT", "DELETE", "HEAD"}
+
+    @staticmethod
+    def _is_method(value: str):
+        return value.lower() in {"get", "post", "patch", "put", "delete", "head"}
 
     def _route(cls, path: str, method: str = "get"):
         match method.lower():
@@ -30,11 +33,13 @@ class Server(type):
             print(f"The {field.__name__} function has been created at '{'/' if path else ''}{path}/{field.__name__}'.")
             return cls._route(cls=cls, path=f"{path}/{field.__name__}", method=method)(field)
         elif inspect.isclass(field):
+            if cls._is_method(field.__name__):
+                method = field.__name__
+            else:
+                path = f"{field.__name__}/{path}"
             return type(field.__name__, field.__bases__,
                         {
-                            k: (cls._to_http_method(v, method, f"{field.__name__}/{path}")
-                            if k not in cls._http_methods else
-                                cls._to_http_method(v, field.__name__, path))
+                            k: cls._to_http_method(cls=cls, field=v, method=method, path=path)
                             for k, v in field.__dict__.items()
                         })
         else:

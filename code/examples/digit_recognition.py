@@ -5,7 +5,7 @@ from typing import Annotated
 import numpy as np
 import uvicorn
 from PIL import Image
-from fastapi import UploadFile, Form
+from fastapi import Form, File
 from keras.api.datasets import mnist
 from keras.api.layers import Dense, Flatten
 from keras.api.models import Sequential
@@ -20,7 +20,7 @@ from server import Server
 
 class DigitRecognition(Perceptron):
     def __init__(self,
-                 number_of_training: int = 10,
+                 number_of_training: int = 30,
                  layers: tuple[Layer] = (
                          Layer(128, "relu"),
                          Layer(64, "relu"),
@@ -90,7 +90,7 @@ class DigitRecognition(Perceptron):
         )
         self.model.save(self.SAVE_FILE)
 
-    def apply(self, data, **kwargs) -> int:
+    def apply(self, data: bytes, **kwargs) -> int:
         """
         Применяет модель нейросети к данным.
         В случае отсутствия модели вызывает train().
@@ -101,11 +101,12 @@ class DigitRecognition(Perceptron):
         predictions = self.model.predict(
             np.array(
                 Image.open(io.BytesIO(data))
+                    .convert("L")
                     .resize(self.INPUT_SHAPE)
-            ).reshape((1, 28, 28, 1))
+            ).reshape((1, 28, 28, 1)) / 255.0
         )
 
-        return np.argmax(predictions)
+        return int(np.argmax(predictions))
 
 
 class DBInClass:
@@ -115,15 +116,16 @@ class DBInClass:
 db = DBInClass()
 
 class WebUI(metaclass=Server):
+    class Post:
+        @staticmethod
+        def prediction(image: bytes = File()):
+            return JSONResponse({"prediction": db.model.apply(image)}, status_code=200)
+
     @staticmethod
     def home():
         with open("templates/digit_recognition.html") as file:
             db.model.train()
             return HTMLResponse(file.read(), status_code=200)
-
-    @staticmethod
-    def prediction(image: Annotated[UploadFile, Form()]):
-        return JSONResponse({"prediction": db.model.apply(image)}, status_code=200)
 
 
 if __name__ == "__main__":
