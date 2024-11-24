@@ -1,6 +1,7 @@
 pillow==11.0.0
 fastapi==0.115.4
 keras==3.6.0
-numpy==2.1.2
+numpy==2.0.2
 uvicorn==0.32.0
 python-multipart==0.0.17
+tensorflow
