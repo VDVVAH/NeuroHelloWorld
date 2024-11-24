@@ -139,6 +139,7 @@
         <div>
             <button id="predict_button" class="canvas_button">Распознать</button>
             <button id="clear_button" class="canvas_button">Очистить</button>
+            <button id="convolutional_predict_button" class="canvas_button">Предсказание от свёрточной сети</button>
             <p id="prediction">Нажмите 'Распознать'.</p>
         </div>
     </section>
@@ -171,6 +172,7 @@ obj.canvas.addEventListener("mouseleave", (e) => {
 obj.canvas.addEventListener("mousemove", draw);
 document.getElementById("predict_button").addEventListener("click", predict);
 document.getElementById("clear_button").addEventListener("click", clear);
+document.getElementById("convolutional_predict_button").addEventListener("click", convolutional_predict);
 
 function draw(e) {
     if (obj.drawing) {
@@ -196,6 +198,25 @@ function predict() {
         formData.append("image", blob);
 
         fetch("/prediction", {
+            method: "POST",
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("prediction").innerText = "Предсказание: " + data.prediction;
+        })
+        .catch(error => {
+            console.error("Ошибка:", error);
+        });
+    });
+}
+
+function convolutional_predict() {
+    obj.canvas.toBlob((blob) => {
+        const formData = new FormData();
+        formData.append("image", blob);
+
+        fetch("/convolutional_prediction", {
             method: "POST",
             body: formData,
         })

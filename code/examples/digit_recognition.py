@@ -1,23 +1,21 @@
 import io
+
 from pathlib import Path
 
 import numpy as np
-import uvicorn
+
 from PIL import Image
-from fastapi import Form, File
+
 from keras.api.datasets import mnist
 from keras.api.layers import Dense, Flatten
-from keras.api.models import Sequential
-from keras.api.models import load_model
+from keras.api.models import Sequential, load_model
 from keras.api.utils import to_categorical
-from fastapi.responses import HTMLResponse, JSONResponse
 
-from Perceptron import Perceptron, Layer
-from server import Server
+from RecognitionNeuroNetwork import RecognitionNeuroNetwork, Layer
 
 # Воспользовался https://github.com/blaze-arch/MNIST-Classifier/blob/main/templates
 
-class DigitRecognition(Perceptron):
+class DigitRecognition(RecognitionNeuroNetwork):
     def __init__(self,
                  number_of_training: int = 30,
                  layers: tuple[Layer] = (
@@ -106,26 +104,3 @@ class DigitRecognition(Perceptron):
         )
 
         return int(np.argmax(predictions))
-
-
-class DBInClass:
-    def __init__(self):
-        self.model = DigitRecognition()
-
-db = DBInClass()
-
-class WebUI(metaclass=Server):
-    class Post:
-        @staticmethod
-        def prediction(image: bytes = File()):
-            return JSONResponse({"prediction": db.model.apply(image)}, status_code=200)
-
-    @staticmethod
-    def home():
-        with open("templates/digit_recognition.html") as file:
-            db.model.train()
-            return HTMLResponse(file.read(), status_code=200)
-
-
-if __name__ == "__main__":
-    uvicorn.run(app=WebUI.app, host="0.0.0.0", port=8080)

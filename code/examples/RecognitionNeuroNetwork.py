@@ -1,7 +1,7 @@
 from abc import ABCMeta
 
 
-class Perceptron(metaclass=ABCMeta):
+class RecognitionNeuroNetwork(metaclass=ABCMeta):
     def train(self, *args, **kwargs):
         raise NotImplementedError
 
