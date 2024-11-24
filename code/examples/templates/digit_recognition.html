@@ -156,8 +156,8 @@ const obj = {
 
 obj.canvas.addEventListener("mousedown", (e) => {
     obj.drawing = true;
-    obj.lastCoord.x = e.clientX - obj.rect.left;
-    obj.lastCoord.y = e.clientY - obj.rect.top;
+    obj.lastCoord.x = e.pageX - obj.rect.left;
+    obj.lastCoord.y = e.pageY - obj.rect.top;
 });
 
 obj.canvas.addEventListener("mouseup", (e) => {
@@ -181,8 +181,8 @@ function draw(e) {
         obj.context.beginPath();
         obj.context.moveTo(obj.lastCoord.x, obj.lastCoord.y);
 
-        obj.lastCoord.x = e.clientX - obj.rect.left;
-        obj.lastCoord.y = e.clientY - obj.rect.top;
+        obj.lastCoord.x = e.pageX - obj.rect.left;
+        obj.lastCoord.y = e.pageY - obj.rect.top;
 
         obj.context.lineTo(obj.lastCoord.x, obj.lastCoord.y);
         obj.context.stroke();

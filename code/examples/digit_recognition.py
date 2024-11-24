@@ -1,6 +1,5 @@
 import io
 from pathlib import Path
-from typing import Annotated
 
 import numpy as np
 import uvicorn
